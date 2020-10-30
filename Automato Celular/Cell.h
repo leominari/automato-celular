@@ -1,6 +1,7 @@
 #pragma once
 #include "Settings.h"
 
+
 class Cell
 {
 private:
