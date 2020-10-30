@@ -1,28 +1,18 @@
 #include <SFML/Graphics.hpp>
-#include <iostream>
-#include <time.h>
-#include <stdlib.h>
 #include <list>
+#include <windows.h>
+#include <stdio.h>
 #include "Infected.h"
 #include "People.h"
 #include "Wall.h"
-#include <windows.h> /* WinAPI */
-
-const int WALL = -1;
-const int CLEAR = 0;
-const int PEOPLE = 1;
-const int INFECTED = 2;
-
-const int TMATRIX = 100;
-const int TIMECICLE = 500;
-const int TCELL = 5;
-
-const int TINFECTED = 50;
-const int TPEOPLE = 30;
-const int TWALL = 4;
+#include "ReturnType.h"
+#include "Settings.h"
 
 int matrix[TMATRIX][TMATRIX];
-int cicleNumber = 0;
+long int cicleNumber = 0;
+int ciclePrint = 0;
+
+bool fI, fP, fW = false;
 
 std::list<Infected> infectedCells;
 std::list<Infected>::iterator iInfected;
@@ -46,20 +36,37 @@ void start()
     }
 }
 
+// 0 = up
+// 1 = right
+// 2 = down
+// 3 = left
+int randomDirection()
+{
+    return rand() % 4;
+}
+
 void randomCell(int type)
 {
-    int x = rand() % TMATRIX;
-    int y = rand() % TMATRIX;
+    int x;
+    int y;
+    do
+    {
+        x = rand() % TMATRIX;
+        y = rand() % TMATRIX;
+
+    } while (matrix[x][y] != CLEAR);
 
     Wall newWall(x, y, 1);
     People newPeople(x, y, 1);
     Infected newInfected(x, y, 1);
+
     switch (type)
     {
     case -1:
         // std::cout << "PEOPLE [" << x << "," << y << "]" << std::endl;
         wallCells.push_back(newWall);
         matrix[x][y] = WALL;
+        newWall.buildWall(matrix, randomDirection());
         break;
     case 1:
         // std::cout << "PEOPLE [" << x << "," << y << "]" << std::endl;
@@ -92,40 +99,115 @@ void simulation()
     }
 }
 
-// 0 = up
-// 1 = right
-// 2 = down
-// 3 = left
-int randomDirection()
+void printArchive(int pessoa, int zumbi)
 {
-    return rand() % 4;
+    errno_t err;
+    FILE* stream;
+    err =  fopen_s(&stream, "arquivo.txt", "a+");
+
+    fprintf(stream, "%d %d\n", pessoa, zumbi);
+    fclose(stream);
+}
+
+void searchInfected(int x, int y)
+{
+    for (iInfected = infectedCells.begin(); iInfected != infectedCells.end(); ++iInfected)
+    {
+        if ((iInfected->x == x) && (iInfected->y == y))
+        {
+            infectedCells.erase(iInfected++);
+            // infectedCells.erase(iInfected);
+        }
+    }
+}
+
+void searchPeople(int x, int y)
+{
+    for (iPeople = peopleCells.begin(); iPeople != peopleCells.end(); ++iPeople)
+    {
+        if ((iPeople->x == x) && (iPeople->y == y))
+        {
+            peopleCells.erase(iPeople++);
+            Infected newInfected(x, y, 1);
+            infectedCells.push_back(newInfected);
+            matrix[x][y] = INFECTED;
+        }
+    }
+}
+
+void randomToMove()
+{
+    int x;
+    int y;
+    int sorteio = rand() % 100;
+    do
+    {
+        x = rand() % 100;
+        y = rand() % 100;
+
+    } while ((matrix[x][y] == CLEAR) || (matrix[x][y] == WALL));
+
+    if (matrix[x][y] == PEOPLE)
+    {
+        for (iPeople = peopleCells.begin(); iPeople != peopleCells.end(); ++iPeople)
+        {
+            if ((iPeople->x == x) && (iPeople->y == y))
+            {
+                matrix[iPeople->x][iPeople->y] = CLEAR;
+                ReturnType response = iPeople->ableToMove(randomDirection(), matrix);
+                if (response.status)
+                {
+                    if (sorteio <= PESGAMMA)
+                    {
+                        std::cout << "Zumbi morto!" << std::endl;
+                        searchInfected(response.x, response.y);
+                    }
+                }
+                matrix[iPeople->x][iPeople->y] = PEOPLE;
+            }
+        }
+    }
+    else
+    {
+        for (iInfected = infectedCells.begin(); iInfected != infectedCells.end(); ++iInfected)
+        {
+            if ((iInfected->x == x) && (iInfected->y == y))
+            {
+
+                matrix[iInfected->x][iInfected->y] = CLEAR;
+                ReturnType response = iInfected->ableToMove(randomDirection(), matrix);
+                if (response.status)
+                {
+                    if (sorteio <= GAMMA)
+                    {
+                        std::cout << "Pessoa infectada!" << std::endl;
+                        searchPeople(response.x, response.y);
+                    }
+                }
+                matrix[iInfected->x][iInfected->y] = INFECTED;
+            }
+        }
+    }
+}
+
+void buildWalls()
+{
+    for (iWall = wallCells.begin(); iWall != wallCells.end(); ++iWall)
+    {
+        matrix[iWall->x][iWall->y] = CLEAR;
+        iWall->ableToMove(randomDirection());
+        matrix[iWall->x][iWall->y] = WALL;
+    }
 }
 
 void cicle()
 {
 
-    for (iInfected = infectedCells.begin(); iInfected != infectedCells.end(); ++iInfected)
-    {
-        matrix[iInfected->x][iInfected->y] = CLEAR;
-        iInfected->ableToMove(randomDirection(), TMATRIX);
-        matrix[iInfected->x][iInfected->y] = INFECTED;
-    }
-
-    for (iPeople = peopleCells.begin(); iPeople != peopleCells.end(); ++iPeople)
-    {
-        matrix[iPeople->x][iPeople->y] = CLEAR;
-        iPeople->ableToMove(randomDirection(), TMATRIX);
-        matrix[iPeople->x][iPeople->y] = PEOPLE;
-    }
-
-    for (iWall = wallCells.begin(); iWall != wallCells.end(); ++iWall)
-    {
-        matrix[iWall->x][iWall->y] = CLEAR;
-        iWall->ableToMove(randomDirection(), TMATRIX);
-        matrix[iWall->x][iWall->y] = WALL;
-    }
+    buildWalls();
+    randomToMove();
 
     cicleNumber++;
+    ciclePrint++;
 }
 
 void drawMatrix(sf::RenderWindow *window)
@@ -171,7 +253,11 @@ int main()
     simulation();
     while (window.isOpen())
     {
-        std::cout << "Ciclo " << cicleNumber << std::endl;
+        std::cout << cicleNumber << " Infectados: " << infectedCells.size() << " Pessoas: " << peopleCells.size() << std::endl;
+        if (cicleNumber == 100) {
+            printArchive(infectedCells.size(), peopleCells.size());
+            cicleNumber = 0;
+        }
         cicle();
 
         sf::Event event;
@@ -185,7 +271,7 @@ int main()
         draw(&window);
         window.display();
 
-        Sleep(TIMECICLE);
+        //Sleep(TIMECICLE);
     }
 
     return 0;

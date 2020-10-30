@@ -1,4 +1,6 @@
 #pragma once
+#include "Settings.h"
+
 class Cell
 {
 private:
@@ -48,11 +50,11 @@ public:
 	void moveLeft();
 
 
-	bool checkUp(int TMATRIX);
-	bool checkDown(int TMATRIX);
-	bool checkLeft(int TMATRIX);
-	bool checkRight(int TMATRIX);
+	bool checkUp(int (&matrix)[TMATRIX][TMATRIX]);
+	bool checkDown(int (&matrix)[TMATRIX][TMATRIX]);
+	bool checkLeft(int (&matrix)[TMATRIX][TMATRIX]);
+	bool checkRight(int (&matrix)[TMATRIX][TMATRIX]);
 
 	//select move
-	void Move(int dir, int TMATRIX);
+	bool Move(int dir, int (&matrix)[TMATRIX][TMATRIX]);
 };

@@ -152,9 +152,12 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\SFML\include</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="People.cpp" />
+    <ClCompile Include="ReturnType.cpp" />
     <ClCompile Include="Wall.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ReturnType.h" />
+    <ClInclude Include="Settings.h" />
     <ClInclude Include="Cell.h" />
     <ClInclude Include="Infected.h" />
     <ClInclude Include="People.h" />

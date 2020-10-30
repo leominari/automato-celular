@@ -1,2 +1,3 @@
 ﻿  main.cpp
+C:\Users\leo_m\Desktop\Automato Celular\Automato Celular\main.cpp(258,66): warning C4267: 'argumento': conversão de 'size_t' para 'int', possível perda de dados
   Automato Celular.vcxproj -> C:\Users\leo_m\Desktop\Automato Celular\x64\Debug\Automato Celular.exe

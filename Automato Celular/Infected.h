@@ -1,5 +1,7 @@
 #pragma once
 #include "Cell.h"
+#include "ReturnType.h"
+
 class Infected : public Cell
 {
 private:
@@ -26,5 +28,7 @@ public:
         this->y = y;
         this->state = state;
     }
-    bool ableToMove(int dir, int TMATRIX);
+    
+    ReturnType ableToMove(int dir, int (&matrix)[TMATRIX][TMATRIX]);
+    ReturnType bitten(int dir, int(&matrix)[TMATRIX][TMATRIX]);
 };
