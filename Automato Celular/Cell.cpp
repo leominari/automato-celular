@@ -58,8 +58,7 @@ bool Cell::checkLeft(int TMATRIX)
 	return false;
 }
 
-
-void Cell::switchMove(int dir, int TMATRIX)
+void Cell::Move(int dir, int TMATRIX)
 {
 	switch (dir)
 	{

@@ -1,0 +1,6 @@
+﻿  Cell.cpp
+  People.cpp
+  Wall.cpp
+  Gerando Código...
+  main.cpp
+sfml-graphics-d.lib(sfml-graphics-d-2.dll) : fatal error LNK1112: tipo de módulo de máquina 'x64' conflita com tipo de máquina alvo 'x86'

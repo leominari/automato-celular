@@ -3,19 +3,35 @@
 #include <time.h>
 #include <stdlib.h>
 #include <list>
-#include "Cell.h"
+#include "Infected.h"
+#include "People.h"
+#include "Wall.h"
 #include <windows.h> /* WinAPI */
+
+const int WALL = -1;
+const int CLEAR = 0;
+const int PEOPLE = 1;
+const int INFECTED = 2;
 
 const int TMATRIX = 100;
 const int TIMECICLE = 500;
 const int TCELL = 5;
-const int INFECTED = 50;
+
+const int TINFECTED = 50;
+const int TPEOPLE = 30;
+const int TWALL = 4;
 
 int matrix[TMATRIX][TMATRIX];
 int cicleNumber = 0;
 
-std::list<Cell> infectedCells;
-std::list<Cell>::iterator it;
+std::list<Infected> infectedCells;
+std::list<Infected>::iterator iInfected;
+
+std::list<Wall> wallCells;
+std::list<Wall>::iterator iWall;
+
+std::list<People> peopleCells;
+std::list<People>::iterator iPeople;
 
 void start()
 {
@@ -35,11 +51,25 @@ void randomCell(int type)
     int x = rand() % TMATRIX;
     int y = rand() % TMATRIX;
 
-    Cell newCell(x, y, 1);
+    Wall newWall(x, y, 1);
+    People newPeople(x, y, 1);
+    Infected newInfected(x, y, 1);
     switch (type)
     {
+    case -1:
+        // std::cout << "PEOPLE [" << x << "," << y << "]" << std::endl;
+        wallCells.push_back(newWall);
+        matrix[x][y] = WALL;
+        break;
     case 1:
-        infectedCells.push_back(newCell);
+        // std::cout << "PEOPLE [" << x << "," << y << "]" << std::endl;
+        peopleCells.push_back(newPeople);
+        matrix[x][y] = PEOPLE;
+        break;
+    case 2:
+        // std::cout << "INFECTED [" << x << "," << y << "]" << std::endl;
+        infectedCells.push_back(newInfected);
+        matrix[x][y] = INFECTED;
         break;
     default:
         break;
@@ -48,9 +78,17 @@ void randomCell(int type)
 
 void simulation()
 {
-    for (int i = 0; i < INFECTED; i++)
+    for (int i = 0; i < TWALL; i++)
+    {
+        randomCell(-1);
+    }
+    for (int i = 0; i < TPEOPLE; i++)
     {
         randomCell(1);
+    }
+    for (int i = 0; i < TINFECTED; i++)
+    {
+        randomCell(2);
     }
 }
 
@@ -63,19 +101,28 @@ int randomDirection()
     return rand() % 4;
 }
 
-int moviment(int x, int y)
-{
-    return x + y;
-}
-
 void cicle()
 {
 
-    for (it = infectedCells.begin(); it != infectedCells.end(); it++)
+    for (iInfected = infectedCells.begin(); iInfected != infectedCells.end(); ++iInfected)
     {
-        matrix[it->x][it->y] = 0;
-        it->switchMove(randomDirection(), TMATRIX);
-        matrix[it->x][it->y] = 1;
+        matrix[iInfected->x][iInfected->y] = CLEAR;
+        iInfected->ableToMove(randomDirection(), TMATRIX);
+        matrix[iInfected->x][iInfected->y] = INFECTED;
+    }
+
+    for (iPeople = peopleCells.begin(); iPeople != peopleCells.end(); ++iPeople)
+    {
+        matrix[iPeople->x][iPeople->y] = CLEAR;
+        iPeople->ableToMove(randomDirection(), TMATRIX);
+        matrix[iPeople->x][iPeople->y] = PEOPLE;
+    }
+
+    for (iWall = wallCells.begin(); iWall != wallCells.end(); ++iWall)
+    {
+        matrix[iWall->x][iWall->y] = CLEAR;
+        iWall->ableToMove(randomDirection(), TMATRIX);
+        matrix[iWall->x][iWall->y] = WALL;
     }
 
     cicleNumber++;
@@ -90,13 +137,21 @@ void drawMatrix(sf::RenderWindow *window)
         {
             sf::RectangleShape cell(sf::Vector2f(TCELL, TCELL));
             cell.setPosition(sf::Vector2f((float)x * TCELL, (float)y * TCELL));
-            if (matrix[x][y] == 0)
+            if (matrix[x][y] == CLEAR)
             {
-                cell.setFillColor(sf::Color(0, 255, 255, 255));
+                cell.setFillColor(sf::Color::Black);
             }
-            else if (matrix[x][y] == 1)
+            else if (matrix[x][y] == PEOPLE)
             {
-                cell.setFillColor(sf::Color(0, 0, 0, 0));
+                cell.setFillColor(sf::Color::Cyan);
+            }
+            else if (matrix[x][y] == INFECTED)
+            {
+                cell.setFillColor(sf::Color::Red);
+            }
+            else if (matrix[x][y] == WALL)
+            {
+                cell.setFillColor(sf::Color::Green);
             }
             window->draw(cell);
         }

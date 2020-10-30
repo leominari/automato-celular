@@ -39,6 +39,8 @@ public:
 	//set cell alive
 	void setAlive();
 
+	void killCell();
+
 	//move functions
 	void moveUp();
 	void moveRight();
@@ -52,5 +54,5 @@ public:
 	bool checkRight(int TMATRIX);
 
 	//select move
-	void switchMove(int dir, int TMATRIX);
+	void Move(int dir, int TMATRIX);
 };
